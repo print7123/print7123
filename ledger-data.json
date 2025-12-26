@@ -326,6 +326,18 @@
         }
       ],
       "carriedFromPrev": true
+    },
+    "2020-01": {
+      "incomes": [],
+      "expenses": [],
+      "expenseCategories": [
+        {
+          "id": "mjmmq5ulfiqi0b",
+          "name": "통합",
+          "type": "고정"
+        }
+      ],
+      "carriedFromPrev": true
     }
   }
 }
