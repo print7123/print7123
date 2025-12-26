@@ -5,6 +5,199 @@
       "expenses": [],
       "expenseCategories": [],
       "carriedFromPrev": false
+    },
+    "2018-08": {
+      "incomes": [
+        {
+          "id": "mjmhipa984szmp",
+          "date": "2018-08-20",
+          "amount": 316660,
+          "type": "카드",
+          "memo": ""
+        },
+        {
+          "id": "mjmhj7bc0zfdst",
+          "date": "2018-09-20",
+          "amount": 1159240,
+          "type": "카드",
+          "memo": ""
+        }
+      ],
+      "expenses": [],
+      "expenseCategories": [],
+      "carriedFromPrev": false
+    },
+    "2018-09": {
+      "incomes": [],
+      "expenses": [],
+      "expenseCategories": [],
+      "carriedFromPrev": true
+    },
+    "2018-12": {
+      "incomes": [
+        {
+          "id": "mjmhyk8fmkzaj9",
+          "date": "2018-10-20",
+          "amount": 2811340,
+          "type": "카드",
+          "memo": ""
+        },
+        {
+          "id": "mjmhzddjvnxi5o",
+          "date": "2018-11-20",
+          "amount": 2807996,
+          "type": "카드",
+          "memo": ""
+        },
+        {
+          "id": "mjmip53q0oweja",
+          "date": "2018-12-20",
+          "amount": 3266590,
+          "type": "카드",
+          "memo": ""
+        },
+        {
+          "id": "mjmiqz0666ypf5",
+          "date": "2019-01-20",
+          "amount": 2969230,
+          "type": "카드",
+          "memo": ""
+        }
+      ],
+      "expenses": [
+        {
+          "id": "mjmhxws8bkkjd7",
+          "date": "2018-09-20",
+          "amount": 1181206,
+          "categoryId": "mjmhxv9k36chn6",
+          "categoryName": "통합",
+          "memo": ""
+        },
+        {
+          "id": "mjmhyxpk6r8swq",
+          "date": "2018-10-20",
+          "amount": 1882713,
+          "categoryId": "mjmhxv9k36chn6",
+          "categoryName": "통합",
+          "memo": ""
+        },
+        {
+          "id": "mjmhzn7r9gnhge",
+          "date": "2018-11-20",
+          "amount": 1713408,
+          "categoryId": "mjmhxv9k36chn6",
+          "categoryName": "통합",
+          "memo": ""
+        },
+        {
+          "id": "mjmi0fhbmwy51j",
+          "date": "2018-12-20",
+          "amount": 2792710,
+          "categoryId": "mjmhxv9k36chn6",
+          "categoryName": "통합",
+          "memo": ""
+        }
+      ],
+      "expenseCategories": [
+        {
+          "id": "mjmhxv9k36chn6",
+          "name": "통합",
+          "type": "고정"
+        }
+      ],
+      "carriedFromPrev": false
+    },
+    "2019-12": {
+      "incomes": [
+        {
+          "id": "mjmj2ld12xge7p",
+          "date": "2019-03-20",
+          "amount": 5196230,
+          "type": "카드",
+          "memo": ""
+        },
+        {
+          "id": "mjmj4pt9yfkleh",
+          "date": "2019-04-20",
+          "amount": 3941410,
+          "type": "카드",
+          "memo": ""
+        }
+      ],
+      "expenses": [
+        {
+          "id": "mjmitq6u4qxhyb",
+          "date": "2019-01-20",
+          "amount": 2696973,
+          "categoryId": "mjmitih2g5sba8",
+          "categoryName": "통합",
+          "memo": ""
+        },
+        {
+          "id": "mjmj1rxqypyap5",
+          "date": "2019-02-20",
+          "amount": 1848964,
+          "categoryId": "mjmitih2g5sba8",
+          "categoryName": "통합",
+          "memo": ""
+        },
+        {
+          "id": "mjmj425hjsw4ca",
+          "date": "2019-03-20",
+          "amount": 2167700,
+          "categoryId": "mjmitih2g5sba8",
+          "categoryName": "통합",
+          "memo": ""
+        },
+        {
+          "id": "mjmj51r1w85dy2",
+          "date": "2019-04-20",
+          "amount": 2600810,
+          "categoryId": "mjmitih2g5sba8",
+          "categoryName": "통합",
+          "memo": ""
+        }
+      ],
+      "expenseCategories": [
+        {
+          "id": "mjmitih2g5sba8",
+          "name": "통합",
+          "type": "고정"
+        }
+      ],
+      "carriedFromPrev": false
+    },
+    "2019-01": {
+      "incomes": [
+        {
+          "id": "mjmivwni9wsavz",
+          "date": "2019-02-20",
+          "amount": 3262230,
+          "type": "카드",
+          "memo": ""
+        }
+      ],
+      "expenses": [],
+      "expenseCategories": [
+        {
+          "id": "mjmiv1zipm236d",
+          "name": "통합",
+          "type": "고정"
+        }
+      ],
+      "carriedFromPrev": true
+    },
+    "2019-02": {
+      "incomes": [],
+      "expenses": [],
+      "expenseCategories": [
+        {
+          "id": "mjmiw7z91ve1ax",
+          "name": "통합",
+          "type": "고정"
+        }
+      ],
+      "carriedFromPrev": true
     }
   }
 }
