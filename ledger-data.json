@@ -338,6 +338,12 @@
         }
       ],
       "carriedFromPrev": true
+    },
+    "2025-12": {
+      "incomes": [],
+      "expenses": [],
+      "expenseCategories": [],
+      "carriedFromPrev": false
     }
   }
 }
