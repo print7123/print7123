@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}메일 작성 - 온누리인쇄나라{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-pen"></i> 새 메일 작성
+                    </h5>
+                    <a href="{{ url_for('mail_inbox') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> 목록으로
+                    </a>
+                </div>
+                
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <!-- 템플릿 선택 -->
+                        {% if templates %}
+                        <div class="mb-3">
+                            <label for="template_id" class="form-label">
+                                <i class="fas fa-file-alt"></i> 템플릿 선택 (선택사항)
+                            </label>
+                            <select class="form-select" id="template_id" name="template_id" onchange="loadTemplate()">
+                                <option value="">템플릿 선택...</option>
+                                {% for template in templates %}
+                                <option value="{{ template.id }}">{{ template.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- 받는 사람 -->
+                        <div class="mb-3">
+                            <label for="to_email" class="form-label">
+                                <i class="fas fa-user"></i> 받는 사람 <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" class="form-control" id="to_email" name="to_email" required>
+                        </div>
+                        
+                        <!-- 제목 -->
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">
+                                <i class="fas fa-heading"></i> 제목 <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="subject" name="subject" required>
+                        </div>
+                        
+                        <!-- 내용 -->
+                        <div class="mb-3">
+                            <label for="content" class="form-label">
+                                <i class="fas fa-align-left"></i> 내용 <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="content" name="content" rows="15" required 
+                                      placeholder="메일 내용을 입력하세요..."></textarea>
+                        </div>
+                        
+                        <!-- 첨부파일 -->
+                        <div class="mb-3">
+                            <label for="attachments" class="form-label">
+                                <i class="fas fa-paperclip"></i> 첨부파일
+                            </label>
+                            <input type="file" class="form-control" id="attachments" name="attachments" multiple>
+                            <div class="form-text">여러 파일을 선택할 수 있습니다. (최대 10MB)</div>
+                        </div>
+                        
+                        <!-- 첨부파일 미리보기 -->
+                        <div id="attachment-preview" class="mb-3" style="display: none;">
+                            <h6>선택된 파일:</h6>
+                            <div id="file-list" class="list-group"></div>
+                        </div>
+                        
+                        <!-- 발송 옵션 -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="save_draft" name="save_draft">
+                                <label class="form-check-label" for="save_draft">
+                                    임시저장
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- 버튼 -->
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                                    <i class="fas fa-save"></i> 임시저장
+                                </button>
+                                <button type="button" class="btn btn-info" onclick="previewEmail()">
+                                    <i class="fas fa-eye"></i> 미리보기
+                                </button>
+                            </div>
+                            <div>
+                                <a href="{{ url_for('mail_inbox') }}" class="btn btn-outline-secondary">취소</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> 발송
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 미리보기 모달 -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">메일 미리보기</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <strong>받는 사람:</strong> <span id="preview-to"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>제목:</strong> <span id="preview-subject"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>내용:</strong>
+                    <div id="preview-content" class="border p-3 bg-light" style="white-space: pre-wrap;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 템플릿 로드
+function loadTemplate() {
+    const templateId = document.getElementById('template_id').value;
+    if (!templateId) return;
+    
+    // AJAX로 템플릿 내용 가져오기
+    fetch(`/mail/template/${templateId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('subject').value = data.subject;
+            document.getElementById('content').value = data.content;
+        })
+        .catch(error => {
+            console.error('템플릿 로드 오류:', error);
+        });
+}
+
+// 첨부파일 미리보기
+document.getElementById('attachments').addEventListener('change', function(e) {
+    const files = e.target.files;
+    const preview = document.getElementById('attachment-preview');
+    const fileList = document.getElementById('file-list');
+    
+    if (files.length > 0) {
+        fileList.innerHTML = '';
+        
+        for (let file of files) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+            
+            const fileInfo = document.createElement('div');
+            fileInfo.innerHTML = `
+                <i class="fas fa-file me-2"></i>
+                <strong>${file.name}</strong>
+                <small class="text-muted ms-2">(${(file.size / 1024).toFixed(1)} KB)</small>
+            `;
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-outline-danger';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.onclick = function() {
+                fileItem.remove();
+                if (fileList.children.length === 0) {
+                    preview.style.display = 'none';
+                }
+            };
+            
+            fileItem.appendChild(fileInfo);
+            fileItem.appendChild(removeBtn);
+            fileList.appendChild(fileItem);
+        }
+        
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+    }
+});
+
+// 미리보기
+function previewEmail() {
+    const toEmail = document.getElementById('to_email').value;
+    const subject = document.getElementById('subject').value;
+    const content = document.getElementById('content').value;
+    
+    document.getElementById('preview-to').textContent = toEmail;
+    document.getElementById('preview-subject').textContent = subject;
+    document.getElementById('preview-content').textContent = content;
+    
+    new bootstrap.Modal(document.getElementById('previewModal')).show();
+}
+
+// 임시저장
+function saveDraft() {
+    const formData = new FormData();
+    formData.append('to_email', document.getElementById('to_email').value);
+    formData.append('subject', document.getElementById('subject').value);
+    formData.append('content', document.getElementById('content').value);
+    formData.append('save_draft', 'true');
+    
+    fetch('/mail/save-draft', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('임시저장되었습니다.');
+        } else {
+            alert('임시저장에 실패했습니다.');
+        }
+    })
+    .catch(error => {
+        console.error('임시저장 오류:', error);
+        alert('임시저장에 실패했습니다.');
+    });
+}
+
+// 폼 제출 전 확인
+document.querySelector('form').addEventListener('submit', function(e) {
+    const toEmail = document.getElementById('to_email').value;
+    const subject = document.getElementById('subject').value;
+    const content = document.getElementById('content').value;
+    
+    if (!toEmail || !subject || !content) {
+        e.preventDefault();
+        alert('모든 필수 항목을 입력해주세요.');
+        return;
+    }
+    
+    if (!confirm('메일을 발송하시겠습니까?')) {
+        e.preventDefault();
+    }
+});
+</script>
+
+<style>
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 300px;
+}
+
+.list-group-item {
+    border: 1px solid #dee2e6;
+}
+
+.btn-group .btn {
+    margin-right: 5px;
+}
+</style>
+{% endblock %} 

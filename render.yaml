@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: onnuri-print-shop
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app_enhanced_작동중.py
+    envVars:
+      - key: DEPLOYMENT_MODE
+        value: production
+      - key: DOMAIN
+        value: https://onnuri-print-shop.onrender.com
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000
+      - key: PYTHON_VERSION
+        value: 3.9.18
+

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}{{ email.subject }} - 온누리인쇄나라{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <!-- 메일 헤더 -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-envelope"></i> 메일 상세보기
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <a href="{{ url_for('mail_reply', email_id=email.id) }}" class="btn btn-success">
+                            <i class="fas fa-reply"></i> 답장
+                        </a>
+                        <a href="{{ url_for('mail_archive', email_id=email.id) }}" class="btn btn-warning">
+                            <i class="fas fa-archive"></i> 보관
+                        </a>
+                        <a href="{{ url_for('mail_delete', email_id=email.id) }}" class="btn btn-danger" 
+                           onclick="return confirm('이 메일을 삭제하시겠습니까?')">
+                            <i class="fas fa-trash"></i> 삭제
+                        </a>
+                        <a href="{{ url_for('mail_inbox') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> 목록으로
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- 메일 정보 -->
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <h4 class="mb-3">{{ email.subject }}</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>보낸사람:</strong><br>
+                                    <span class="text-primary">{{ email.sender_name or '이름 없음' }}</span><br>
+                                    <small class="text-muted">{{ email.sender_email }}</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>받은시간:</strong><br>
+                                    <span>{{ email.received_at.strftime('%Y년 %m월 %d일 %H:%M:%S') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="text-end">
+                                <!-- 상태 배지 -->
+                                <div class="mb-2">
+                                    {% if email.status == 'unread' %}
+                                        <span class="badge bg-warning fs-6">읽지않음</span>
+                                    {% elif email.status == 'read' %}
+                                        <span class="badge bg-secondary fs-6">읽음</span>
+                                    {% elif email.status == 'replied' %}
+                                        <span class="badge bg-success fs-6">답장함</span>
+                                    {% elif email.status == 'archived' %}
+                                        <span class="badge bg-info fs-6">보관</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- 우선순위 배지 -->
+                                <div class="mb-2">
+                                    {% if email.priority == 'urgent' %}
+                                        <span class="badge bg-danger fs-6">긴급</span>
+                                    {% elif email.priority == 'high' %}
+                                        <span class="badge bg-warning fs-6">높음</span>
+                                    {% elif email.priority == 'normal' %}
+                                        <span class="badge bg-primary fs-6">보통</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary fs-6">낮음</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- 카테고리 배지 -->
+                                <div>
+                                    <span class="badge bg-info fs-6">{{ email.category|title }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 첨부파일 -->
+                    {% if email.attachments %}
+                    <div class="mb-4">
+                        <h6><i class="fas fa-paperclip"></i> 첨부파일 ({{ email.attachments|length }}개)</h6>
+                        <div class="row">
+                            {% for attachment in email.attachments %}
+                            <div class="col-md-6 mb-2">
+                                <div class="card">
+                                    <div class="card-body p-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                {% if attachment.file_type.startswith('image/') %}
+                                                    <i class="fas fa-image text-primary fa-2x"></i>
+                                                {% elif attachment.file_type == 'application/pdf' %}
+                                                    <i class="fas fa-file-pdf text-danger fa-2x"></i>
+                                                {% elif attachment.file_type.startswith('text/') %}
+                                                    <i class="fas fa-file-alt text-info fa-2x"></i>
+                                                {% else %}
+                                                    <i class="fas fa-file text-secondary fa-2x"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold">{{ attachment.original_filename }}</div>
+                                                <small class="text-muted">
+                                                    {{ (attachment.file_size / 1024)|round(1) }} KB
+                                                    {% if not attachment.is_safe %}
+                                                        <span class="badge bg-warning">검사 필요</span>
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                            <div>
+                                                <a href="/download/attachment/{{ attachment.id }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-download"></i> 다운로드
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- 메일 내용 -->
+                    <div class="mb-4">
+                        <h6><i class="fas fa-align-left"></i> 메일 내용</h6>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="email-content" style="white-space: pre-wrap; line-height: 1.6;">
+                                    {{ email.content }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 답장 내역 -->
+                    {% if email.replies %}
+                    <div class="mb-4">
+                        <h6><i class="fas fa-reply"></i> 답장 내역 ({{ email.replies|length }}개)</h6>
+                        {% for reply in email.replies %}
+                        <div class="card mb-2">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    {{ reply.sent_at.strftime('%Y년 %m월 %d일 %H:%M:%S') }}에 답장
+                                </small>
+                                {% if reply.is_sent %}
+                                    <span class="badge bg-success">발송됨</span>
+                                {% else %}
+                                    <span class="badge bg-warning">발송 대기</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <div style="white-space: pre-wrap;">{{ reply.reply_content }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- 태그 -->
+                    {% if email.tags %}
+                    <div class="mb-4">
+                        <h6><i class="fas fa-tags"></i> 태그</h6>
+                        <div>
+                            {% for tag in email.tags|from_json %}
+                            <span class="badge bg-light text-dark me-1">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.email-content {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.card {
+    border: 1px solid #dee2e6;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+</style>
+{% endblock %} 

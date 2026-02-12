@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q&A 관리 - 온누리인쇄나라</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .question-card {
+            transition: transform 0.2s;
+            margin-bottom: 1rem;
+        }
+        .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .answer-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .badge-answered {
+            background-color: #28a745;
+        }
+        .badge-waiting {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .badge-private {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-print me-2"></i>온누리인쇄나라 관리자
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/admin">
+                    <i class="fas fa-tachometer-alt me-1"></i>대시보드
+                </a>
+                <a class="nav-link" href="/admin/questions">
+                    <i class="fas fa-question-circle me-1"></i>Q&A 관리
+                </a>
+                <a class="nav-link" href="/admin/portfolio">
+                    <i class="fas fa-images me-1"></i>포트폴리오
+                </a>
+                <a class="nav-link" href="/admin/files">
+                    <i class="fas fa-folder me-1"></i>파일 관리
+                </a>
+                <a class="nav-link" href="/logout">
+                    <i class="fas fa-sign-out-alt me-1"></i>로그아웃
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="mb-0">
+                    <i class="fas fa-question-circle me-2"></i>Q&A 관리
+                </h2>
+                <p class="text-muted">등록된 질문과 답변을 관리합니다</p>
+            </div>
+        </div>
+
+        <!-- 질문 목록 -->
+        <div id="questionsContainer">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">로딩 중...</span>
+                </div>
+                <p class="mt-3 text-muted">질문 목록을 불러오는 중...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 답변 작성 모달 -->
+    <div class="modal fade" id="answerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">답변 작성</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="questionPreview" class="mb-3 p-3 bg-light rounded">
+                        <h6 id="questionTitle"></h6>
+                        <p id="questionContent" class="mb-0 text-muted"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="answerText" class="form-label">답변 내용</label>
+                        <textarea class="form-control" id="answerText" rows="6" placeholder="답변 내용을 입력하세요"></textarea>
+                    </div>
+                    <!-- 질문자가 선택한 답변 방법 안내 -->
+                    <div class="alert alert-info mb-3" id="answerMethodInfo" style="display: none;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>질문자가 선택한 답변 받는 방법:</strong>
+                        <span class="answer-method-info"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">답변 전송 옵션</label>
+                        <div id="sendOptions" class="border rounded p-3 bg-light">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="sendEmail">
+                                <label class="form-check-label" for="sendEmail">
+                                    <i class="fas fa-envelope me-2 text-primary"></i>이메일로 전송
+                                    <small id="emailInfo" class="text-muted ms-2"></small>
+                                </label>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                <i class="fas fa-info-circle me-1"></i>
+                                질문자가 이메일을 선택한 경우 자동으로 체크됩니다. 필요시 수정할 수 있습니다.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAnswer()">
+                        <i class="fas fa-paper-plane me-2"></i>답변 저장 및 전송
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 질문 수정 모달 -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">질문 수정</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editTitle" class="form-label">제목</label>
+                        <input type="text" class="form-control" id="editTitle" placeholder="질문 제목">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editContent" class="form-label">내용</label>
+                        <textarea class="form-control" id="editContent" rows="6" placeholder="질문 내용"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editIsPublic" checked>
+                            <label class="form-check-label" for="editIsPublic">
+                                공개 질문
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEdit()">수정 저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 이미지 미리보기 모달 -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">이미지 미리보기</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="previewImage" src="" alt="미리보기" class="img-fluid" style="max-height: 70vh;">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" onclick="downloadCurrentFile()">
+                        <i class="fas fa-download me-1"></i>다운로드
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentQuestionId = null;
+        let questions = [];
+
+        // 질문 목록 로드
+        async function loadQuestions() {
+            try {
+                console.log('📋 질문 목록 로드 시작...');
+                console.log('🔗 API URL: /api/admin/questions');
+                
+                const response = await fetch('/api/admin/questions', {
+                    method: 'GET',
+                    credentials: 'include',  // 쿠키 포함
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📡 응답 상태:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('관리자 권한이 필요합니다. 로그인을 확인하세요.');
+                    } else if (response.status === 401) {
+                        throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+                    } else {
+                        throw new Error(`HTTP 오류: ${response.status} ${response.statusText}`);
+                    }
+                }
+                
+                const data = await response.json();
+                console.log('📊 응답 데이터:', data);
+                console.log('📊 success:', data.success);
+                console.log('📊 questions 개수:', data.questions ? data.questions.length : 0);
+                console.log('📊 total:', data.total);
+                
+                if (data.success) {
+                    questions = data.questions || [];
+                    console.log(`✅ 질문 ${questions.length}개 로드 완료`);
+                    
+                    if (questions.length === 0) {
+                        console.log('⚠️ 질문이 0개입니다. 데이터베이스를 확인하세요.');
+                    }
+                    
+                    renderQuestions(questions);
+                } else {
+                    const errorMsg = data.error || '질문 목록을 불러올 수 없습니다.';
+                    console.error('❌ API 오류:', errorMsg);
+                    document.getElementById('questionsContainer').innerHTML = 
+                        `<div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>오류:</strong> ${errorMsg}
+                            <br><small>서버 로그를 확인하세요.</small>
+                            <br><button class="btn btn-sm btn-primary mt-2" onclick="loadQuestions()">
+                                <i class="fas fa-sync me-1"></i>다시 시도
+                            </button>
+                        </div>`;
+                }
+            } catch (error) {
+                console.error('❌ 질문 목록 로드 오류:', error);
+                console.error('❌ 오류 상세:', error.stack);
+                document.getElementById('questionsContainer').innerHTML = 
+                    `<div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>오류 발생:</strong> ${error.message}
+                        <br><small>브라우저 콘솔(F12)을 확인하거나 서버를 재시작해보세요.</small>
+                        <br><button class="btn btn-sm btn-primary mt-2" onclick="loadQuestions()">
+                            <i class="fas fa-sync me-1"></i>다시 시도
+                        </button>
+                    </div>`;
+            }
+        }
+
+        // 질문 목록 렌더링
+        function renderQuestions(questionsList) {
+            const container = document.getElementById('questionsContainer');
+            
+            console.log('📝 렌더링할 질문 개수:', questionsList.length);
+            console.log('📝 질문 데이터:', questionsList);
+            
+            if (!questionsList || questionsList.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        등록된 질문이 없습니다.
+                        <br><small class="text-muted">질문을 등록하려면 메인 페이지의 Q&A 섹션을 이용하세요.</small>
+                    </div>`;
+                return;
+            }
+            
+            let html = '<div class="row">';
+            questionsList.forEach(q => {
+                const statusBadge = q.is_answered 
+                    ? '<span class="badge badge-answered">답변완료</span>'
+                    : '<span class="badge badge-waiting">답변대기</span>';
+                const publicBadge = q.is_public 
+                    ? '' 
+                    : '<span class="badge badge-private ms-2">비공개</span>';
+                const fileBadge = q.has_file 
+                    ? '<i class="fas fa-paperclip ms-2 text-primary" title="첨부 파일 있음"></i>' 
+                    : '';
+                
+                // 파일 확장자 확인 (이미지인지)
+                const fileExt = q.file_path ? q.file_path.split('.').pop().toLowerCase() : '';
+                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(fileExt);
+                const fileButton = q.has_file 
+                    ? `<button class="btn btn-sm btn-info" onclick="${isImage ? 'viewFile' : 'downloadFile'}(${q.id})" title="${isImage ? '파일 보기' : '파일 다운로드'}">
+                            <i class="fas ${isImage ? 'fa-eye' : 'fa-download'} me-1"></i>${isImage ? '파일 보기' : '파일 다운로드'}
+                        </button>` 
+                    : '';
+                
+                // 연락처 정보 표시
+                const contactInfo = [];
+                if (q.email) {
+                    contactInfo.push(`<i class="fas fa-envelope me-1 text-primary"></i>${q.email}`);
+                }
+                if (q.phone) {
+                    contactInfo.push(`<i class="fas fa-phone me-1 text-success"></i>${q.phone}`);
+                }
+                const contactBadge = contactInfo.length > 0 
+                    ? `<div class="mt-2"><small class="text-muted">${contactInfo.join(' | ')}</small></div>` 
+                    : '';
+                
+                html += `
+                    <div class="col-12">
+                        <div class="card question-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h5 class="card-title mb-1">${escapeHtml(q.title)}</h5>
+                                        <div>
+                                            ${statusBadge}${publicBadge}${fileBadge}
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">${q.created_at}</small>
+                                </div>
+                                <p class="card-text">${escapeHtml(q.content)}</p>
+                                ${contactBadge}
+                                ${q.is_answered && q.answer ? `
+                                    <div class="answer-section">
+                                        <strong><i class="fas fa-reply me-2"></i>답변:</strong>
+                                        <p class="mb-0 mt-2">${escapeHtml(q.answer)}</p>
+                                        ${q.answered_at ? `<small class="text-muted">답변일: ${q.answered_at}</small>` : ''}
+                                    </div>
+                                ` : ''}
+                                <div class="mt-3">
+                                    ${fileButton}
+                                    ${!q.is_answered ? `
+                                        <button class="btn btn-sm btn-primary" onclick="openAnswerModal(${q.id})">
+                                            <i class="fas fa-reply me-1"></i>답변 작성
+                                        </button>
+                                    ` : `
+                                        <button class="btn btn-sm btn-primary" onclick="openAnswerModal(${q.id})">
+                                            <i class="fas fa-edit me-1"></i>답변 수정
+                                        </button>
+                                    `}
+                                    <button class="btn btn-sm btn-secondary" onclick="openEditModal(${q.id})">
+                                        <i class="fas fa-edit me-1"></i>질문 수정
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteQuestion(${q.id})">
+                                        <i class="fas fa-trash me-1"></i>삭제
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // 답변 작성 모달 열기
+        function openAnswerModal(questionId) {
+            const question = questions.find(q => q.id === questionId);
+            if (!question) return;
+            
+            currentQuestionId = questionId;
+            document.getElementById('questionTitle').textContent = question.title;
+            document.getElementById('questionContent').textContent = question.content;
+            document.getElementById('answerText').value = question.answer || '';
+            
+            // 이메일/전화번호/답변 방법 정보 표시
+            const emailInfo = document.getElementById('emailInfo');
+            const smsInfo = document.getElementById('smsInfo');
+            const sendEmailCheck = document.getElementById('sendEmail');
+            const sendSmsCheck = document.getElementById('sendSms');
+            
+            // 질문자가 선택한 답변 받는 방법 확인
+            const answerMethod = question.answer_method || 'website';
+            
+            // 답변 방법에 따라 자동으로 체크박스 설정
+            if (answerMethod === 'email' && question.email) {
+                emailInfo.textContent = `(${question.email} - 선택한 방법)`;
+                sendEmailCheck.disabled = false;
+                sendEmailCheck.checked = true;  // 자동 체크
+            } else if (question.email) {
+                emailInfo.textContent = `(${question.email})`;
+                sendEmailCheck.disabled = false;
+                sendEmailCheck.checked = false;
+            } else {
+                emailInfo.textContent = '(이메일 없음)';
+                sendEmailCheck.disabled = true;
+                sendEmailCheck.checked = false;
+            }
+            
+            // 답변 방법 안내 메시지
+            const methodInfoElement = document.getElementById('answerMethodInfo');
+            const methodInfoText = document.querySelector('.answer-method-info');
+            
+            let methodInfo = '';
+            if (answerMethod === 'website') {
+                methodInfo = '홈페이지에 답변 등록 (기본) - 체크박스 선택 불필요';
+                if (methodInfoElement) methodInfoElement.style.display = 'block';
+                if (methodInfoText) methodInfoText.textContent = methodInfo;
+            } else if (answerMethod === 'email') {
+                methodInfo = '이메일로 답변 받기 (선택함) - 자동으로 이메일 전송됩니다';
+                if (methodInfoElement) methodInfoElement.style.display = 'block';
+                if (methodInfoText) methodInfoText.textContent = methodInfo;
+            } else {
+                if (methodInfoElement) methodInfoElement.style.display = 'none';
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('answerModal'));
+            modal.show();
+        }
+
+        // 답변 저장
+        async function saveAnswer() {
+            const answer = document.getElementById('answerText').value.trim();
+            
+            if (!answer) {
+                alert('답변 내용을 입력해주세요.');
+                return;
+            }
+            
+            const sendEmail = document.getElementById('sendEmail').checked && !document.getElementById('sendEmail').disabled;
+            
+            try {
+                const response = await fetch(`/api/admin/question/${currentQuestionId}/answer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        answer: answer,
+                        send_email: sendEmail
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    let message = '답변이 성공적으로 저장되었습니다.';
+                    if (data.email_sent) {
+                        message += '\n이메일로 전송되었습니다.';
+                    }
+                    alert(message);
+                    bootstrap.Modal.getInstance(document.getElementById('answerModal')).hide();
+                    loadQuestions();
+                } else {
+                    alert('답변 저장 실패: ' + (data.error || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('답변 저장 오류:', error);
+                alert('답변 저장 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 질문 수정 모달 열기
+        function openEditModal(questionId) {
+            const question = questions.find(q => q.id === questionId);
+            if (!question) return;
+            
+            currentQuestionId = questionId;
+            document.getElementById('editTitle').value = question.title;
+            document.getElementById('editContent').value = question.content;
+            document.getElementById('editIsPublic').checked = question.is_public;
+            
+            const modal = new bootstrap.Modal(document.getElementById('editModal'));
+            modal.show();
+        }
+
+        // 질문 수정 저장
+        async function saveEdit() {
+            const title = document.getElementById('editTitle').value.trim();
+            const content = document.getElementById('editContent').value.trim();
+            const isPublic = document.getElementById('editIsPublic').checked;
+            
+            if (!title || !content) {
+                alert('제목과 내용을 입력해주세요.');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/question/${currentQuestionId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        content: content,
+                        is_public: isPublic
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('질문이 성공적으로 수정되었습니다.');
+                    bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                    loadQuestions();
+                } else {
+                    alert('질문 수정 실패: ' + (data.error || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('질문 수정 오류:', error);
+                alert('질문 수정 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 질문 삭제
+        async function deleteQuestion(questionId) {
+            if (!confirm('정말 이 질문을 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/question/${questionId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('질문이 성공적으로 삭제되었습니다.');
+                    loadQuestions();
+                } else {
+                    alert('질문 삭제 실패: ' + (data.error || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('질문 삭제 오류:', error);
+                alert('질문 삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        let currentFileQuestionId = null;
+
+        // 파일 다운로드
+        function downloadFile(questionId) {
+            window.open(`/api/admin/question/${questionId}/file`, '_blank');
+        }
+
+        // 파일 보기 (이미지 미리보기)
+        function viewFile(questionId) {
+            currentFileQuestionId = questionId;
+            const imageUrl = `/api/admin/question/${questionId}/file`;
+            document.getElementById('previewImage').src = imageUrl;
+            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            modal.show();
+        }
+
+        // 현재 파일 다운로드
+        function downloadCurrentFile() {
+            if (currentFileQuestionId) {
+                downloadFile(currentFileQuestionId);
+            }
+        }
+
+        // HTML 이스케이프
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 페이지 로드 시 질문 목록 불러오기
+        document.addEventListener('DOMContentLoaded', function() {
+            loadQuestions();
+        });
+    </script>
+</body>
+</html>
+
+

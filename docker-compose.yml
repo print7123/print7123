@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DEPLOYMENT_MODE=production
+      - DOMAIN=http://localhost:5000
+      - HOST=0.0.0.0
+      - PORT=5000
+      - SECRET_KEY=change-this-secret-key-in-production
+    volumes:
+      - ./instance:/app/instance
+      - ./uploads:/app/uploads
+      - ./static:/app/static
+    restart: unless-stopped
+

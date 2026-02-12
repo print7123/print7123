@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}문의 - 온누리인쇄나라{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">
+            <i class="fas fa-phone me-3"></i>문의
+        </h1>
+        <p class="lead text-muted">궁금한 점이 있으시면 언제든 연락주세요.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-envelope me-2"></i>문의하기
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">이름</label>
+                                    <input type="text" class="form-control" id="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">이메일</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">연락처</label>
+                            <input type="tel" class="form-control" id="phone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">제목</label>
+                            <input type="text" class="form-control" id="subject" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">메시지</label>
+                            <textarea class="form-control" id="message" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>보내기
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map-marker-alt me-2"></i>연락처 정보
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <h6 class="fw-bold">
+                            <i class="fas fa-map-marker-alt me-2 text-primary"></i>주소
+                        </h6>
+                        <p class="mb-0">서울시 강남구 테헤란로 123, 온누리빌딩 5층</p>
+                    </div>
+                    <div class="mb-4">
+                        <h6 class="fw-bold">
+                            <i class="fas fa-phone me-2 text-success"></i>전화
+                        </h6>
+                        <p class="mb-0">02-1234-5678</p>
+                    </div>
+                    <div class="mb-4">
+                        <h6 class="fw-bold">
+                            <i class="fas fa-envelope me-2 text-warning"></i>이메일
+                        </h6>
+                        <p class="mb-0">info@onuri-print.co.kr</p>
+                    </div>
+                    <div class="mb-4">
+                        <h6 class="fw-bold">
+                            <i class="fas fa-clock me-2 text-info"></i>영업시간
+                        </h6>
+                        <p class="mb-0">평일 09:00 - 18:00<br>토요일 09:00 - 13:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

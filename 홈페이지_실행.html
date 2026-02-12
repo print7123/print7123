@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홈페이지 실행</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 90%;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+        }
+        .subtitle {
+            font-size: 1.3em;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        .status-box {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status-text {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 18px 35px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .btn-secondary {
+            background: #2196F3;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #0b7dda;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .hidden {
+            display: none;
+        }
+        .success-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .info-box strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 홈페이지 실행</h1>
+        <p class="subtitle">서버 자동 시작 및 홈페이지 열기</p>
+        
+        <div id="statusBox" class="status-box">
+            <div class="spinner"></div>
+            <p class="status-text">서버 상태 확인 중...</p>
+        </div>
+        
+        <div id="buttonGroup" class="button-group hidden">
+            <!-- 버튼들은 JavaScript로 동적으로 생성됩니다 -->
+        </div>
+        
+        <div id="infoBox" class="info-box hidden">
+            <strong>📋 사용 방법:</strong>
+            <p>1. "서버 시작 및 홈페이지 열기" 버튼을 클릭하세요</p>
+            <p>2. 또는 "🚀_홈페이지_자동_실행_통합HTML.bat" 파일을 더블클릭하세요</p>
+            <p>3. 서버가 시작되면 자동으로 홈페이지가 열립니다</p>
+        </div>
+    </div>
+
+    <script>
+        let serverRunning = false;
+        
+        // 서버 상태 확인
+        async function checkServerStatus() {
+            try {
+                // CORS 문제를 피하기 위해 간단한 방법 사용
+                const img = new Image();
+                img.src = 'http://localhost:5000/favicon.ico?' + new Date().getTime();
+                
+                return new Promise((resolve) => {
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    setTimeout(() => resolve(false), 2000);
+                });
+            } catch (error) {
+                return false;
+            }
+        }
+        
+        // 서버 시작 함수
+        function startServer() {
+            const statusBox = document.getElementById('statusBox');
+            const buttonGroup = document.getElementById('buttonGroup');
+            
+            statusBox.innerHTML = `
+                <div class="spinner"></div>
+                <p class="status-text">서버 시작 중...</p>
+                <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">
+                    잠시만 기다려주세요...
+                </p>
+            `;
+            buttonGroup.classList.add('hidden');
+            
+            // Windows에서 배치 파일 실행
+            if (navigator.platform.toLowerCase().includes('win')) {
+                try {
+                    // WScript.Shell을 사용하여 배치 파일 실행
+                    const shell = new ActiveXObject('WScript.Shell');
+                    const batPath = window.location.pathname.replace(/[^/\\]*$/, '') + '🚀_홈페이지_자동_실행_통합HTML.bat';
+                    shell.Run('"' + batPath + '"', 0, false);
+                    
+                    // 서버 시작 대기
+                    let count = 0;
+                    const checkInterval = setInterval(async () => {
+                        count++;
+                        const isRunning = await checkServerStatus();
+                        
+                        if (isRunning) {
+                            clearInterval(checkInterval);
+                            serverRunning = true;
+                            statusBox.innerHTML = `
+                                <div class="success-icon">✅</div>
+                                <p class="status-text">서버가 시작되었습니다!</p>
+                            `;
+                            buttonGroup.innerHTML = `
+                                <a href="http://localhost:5000" class="btn btn-primary" target="_blank">홈페이지 열기</a>
+                                <button class="btn btn-secondary" onclick="openIntegratedHTML()">통합 HTML 열기</button>
+                            `;
+                            buttonGroup.classList.remove('hidden');
+                            
+                            // 자동으로 홈페이지 열기
+                            setTimeout(() => {
+                                window.open('http://localhost:5000', '_blank');
+                            }, 1000);
+                        } else if (count >= 15) {
+                            clearInterval(checkInterval);
+                            statusBox.innerHTML = `
+                                <p class="status-text">⚠️ 서버 시작에 시간이 걸리고 있습니다.</p>
+                                <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">
+                                    배치 파일을 직접 실행하거나 잠시 후 다시 시도하세요.
+                                </p>
+                            `;
+                            buttonGroup.innerHTML = `
+                                <button class="btn btn-primary" onclick="window.location.reload()">다시 시도</button>
+                                <button class="btn btn-secondary" onclick="openIntegratedHTML()">통합 HTML 열기</button>
+                            `;
+                            buttonGroup.classList.remove('hidden');
+                        }
+                    }, 2000);
+                } catch (e) {
+                    // ActiveXObject가 지원되지 않는 경우 (최신 브라우저)
+                    statusBox.innerHTML = `
+                        <p class="status-text">⚠️ 브라우저에서 직접 서버를 시작할 수 없습니다.</p>
+                        <div class="info-box" style="margin-top: 20px;">
+                            <strong>다음 파일을 더블클릭하세요:</strong>
+                            <p style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; margin-top: 10px; font-family: monospace;">
+                                🚀_홈페이지_자동_실행_통합HTML.bat
+                            </p>
+                        </div>
+                    `;
+                    buttonGroup.innerHTML = `
+                        <button class="btn btn-secondary" onclick="openIntegratedHTML()">통합 HTML 파일 열기</button>
+                    `;
+                    buttonGroup.classList.remove('hidden');
+                }
+            } else {
+                statusBox.innerHTML = `
+                    <p class="status-text">⚠️ Windows에서만 자동 서버 시작이 지원됩니다.</p>
+                `;
+                buttonGroup.innerHTML = `
+                    <button class="btn btn-secondary" onclick="openIntegratedHTML()">통합 HTML 파일 열기</button>
+                `;
+                buttonGroup.classList.remove('hidden');
+            }
+        }
+        
+        // 통합 HTML 파일 열기
+        function openIntegratedHTML() {
+            window.location.href = 'index_통합.html';
+        }
+        
+        // 페이지 로드 시 서버 상태 확인
+        window.addEventListener('load', async () => {
+            const statusBox = document.getElementById('statusBox');
+            const buttonGroup = document.getElementById('buttonGroup');
+            const infoBox = document.getElementById('infoBox');
+            
+            // 서버 상태 확인
+            setTimeout(async () => {
+                const isRunning = await checkServerStatus();
+                
+                if (isRunning) {
+                    serverRunning = true;
+                    statusBox.innerHTML = `
+                        <div class="success-icon">✅</div>
+                        <p class="status-text">서버가 실행 중입니다!</p>
+                    `;
+                    buttonGroup.innerHTML = `
+                        <a href="http://localhost:5000" class="btn btn-primary" target="_blank">홈페이지 열기</a>
+                        <button class="btn btn-secondary" onclick="openIntegratedHTML()">통합 HTML 열기</button>
+                    `;
+                    buttonGroup.classList.remove('hidden');
+                } else {
+                    statusBox.innerHTML = `
+                        <p class="status-text">서버가 실행 중이 아닙니다.</p>
+                        <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">
+                            서버를 시작하려면 아래 버튼을 클릭하세요.
+                        </p>
+                    `;
+                    buttonGroup.innerHTML = `
+                        <button class="btn btn-primary" onclick="startServer()">서버 시작 및 홈페이지 열기</button>
+                        <button class="btn btn-secondary" onclick="openIntegratedHTML()">통합 HTML 파일 열기</button>
+                    `;
+                    buttonGroup.classList.remove('hidden');
+                    infoBox.classList.remove('hidden');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+
+
+

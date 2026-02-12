@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용후기 작성 - 온누리인쇄나라</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        #fileDropZone {
+            transition: all 0.3s ease;
+        }
+        #fileDropZone:hover {
+            background-color: #e9ecef !important;
+            border-color: #adb5bd !important;
+        }
+        #fileDropZone.drag-over {
+            background-color: #e3f2fd !important;
+            border-color: #2196f3 !important;
+        }
+        #imagePreviewGrid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            visibility: visible !important;
+        }
+        .preview-image-card {
+            position: relative;
+        }
+        .preview-image-card .card {
+            transition: transform 0.2s;
+            border: 1px solid #dee2e6;
+        }
+        .preview-image-card .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .preview-image-card .card img {
+            width: 100% !important;
+            height: 200px !important;
+            object-fit: cover !important;
+            display: block !important;
+            background-color: #f8f9fa;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        .preview-image-card .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-print me-2"></i>온누리인쇄나라
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">홈</a>
+                <a class="nav-link active" href="/board">사용후기</a>
+                <a class="nav-link" href="/qa">Q&A</a>
+                {% if current_user.is_authenticated %}
+                <a class="nav-link" href="/admin">관리자</a>
+                <a class="nav-link" href="/logout">로그아웃</a>
+                {% else %}
+                <a class="nav-link" href="/login">로그인</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-star me-2"></i>사용후기 작성
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="category_id" class="form-label fw-bold">
+                                    <i class="fas fa-folder me-2"></i>카테고리 <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="category_id" name="category_id" required>
+                                    <option value="">카테고리를 선택하세요</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}" 
+                                            {% if default_category_id and category.id == default_category_id %}selected{% endif %}
+                                            {% if category.is_admin_only and not is_admin %}disabled{% endif %}>
+                                        {{ category.name }}{% if category.is_admin_only %} (관리자 전용){% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if not is_admin %}
+                                <div class="form-text text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>일반 사용자는 사용후기 카테고리만 선택할 수 있습니다.
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="author_name" class="form-label fw-bold">
+                                    <i class="fas fa-user me-2"></i>작성자 <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="author_name" name="author_name" 
+                                       value="{% if current_user.is_authenticated %}{{ current_user.username }}{% endif %}" 
+                                       required placeholder="작성자 이름을 입력하세요">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="title" class="form-label fw-bold">
+                                    <i class="fas fa-heading me-2"></i>후기 제목 <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="title" name="title" required placeholder="예: 인쇄 품질이 정말 좋았어요!">
+                                <div class="form-text">온누리인쇄나라 이용 후기를 간단히 요약해주세요</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="content" class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-2"></i>후기 내용 <span class="text-danger">*</span>
+                                </label>
+                                <textarea class="form-control" id="content" name="content" rows="10" required placeholder="인쇄 서비스 이용 경험을 자세히 작성해주세요.&#10;예: 주문한 책자 인쇄가 생각보다 훨씬 깔끔하게 나왔어요. 제본도 튼튼하고..."></textarea>
+                                <div class="form-text">실제 이용 경험을 솔직하게 작성해주시면 다른 고객님들에게 도움이 됩니다</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="files" class="form-label fw-bold">
+                                    <i class="fas fa-camera me-2"></i>사진 첨부 (선택사항, 여러 개 가능)
+                                </label>
+                                <div id="fileDropZone" class="border border-2 border-dashed rounded p-4" style="min-height: 200px; background-color: #f8f9fa; cursor: pointer; position: relative;">
+                                    <input type="file" class="d-none" id="files" name="files" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" multiple>
+                                    <div id="fileDropZoneContent" class="text-center" style="min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                        <p class="mb-2"><strong>사진을 드래그하거나 클릭하여 선택하세요</strong></p>
+                                        <p class="text-muted small mb-0">JPG, PNG, GIF, WEBP 이미지 파일만 가능 (최대 10개)</p>
+                                    </div>
+                                    <div id="imagePreviewGrid"></div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('board') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>취소
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-check me-2"></i>등록
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            'use strict';
+            
+            const fileInput = document.getElementById('files');
+            const fileDropZone = document.getElementById('fileDropZone');
+            const fileDropZoneContent = document.getElementById('fileDropZoneContent');
+            const imagePreviewGrid = document.getElementById('imagePreviewGrid');
+            
+            if (!fileInput || !fileDropZone || !fileDropZoneContent || !imagePreviewGrid) {
+                console.error('필수 요소를 찾을 수 없습니다.');
+                return;
+            }
+            
+            let selectedFiles = [];
+            const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            const maxFiles = 10;
+            const maxSize = 10 * 1024 * 1024;
+            
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+            }
+            
+            function addImagePreview(file, imageUrl) {
+                console.log('미리보기 추가 시작:', file.name);
+                console.log('이미지 URL 길이:', imageUrl ? imageUrl.length : 0);
+                console.log('이미지 URL 시작:', imageUrl ? imageUrl.substring(0, 50) : 'null');
+                
+                if (!imageUrl || imageUrl.length === 0) {
+                    console.error('이미지 URL이 비어있습니다.');
+                    return;
+                }
+                
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'preview-image-card';
+                cardDiv.setAttribute('data-file-name', file.name);
+                
+                // 카드 생성
+                const card = document.createElement('div');
+                card.className = 'card position-relative';
+                
+                // 이미지 생성
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = file.name;
+                img.className = 'card-img-top';
+                img.style.cssText = 'width: 100%; height: 200px; object-fit: cover; display: block; background-color: #f8f9fa;';
+                
+                img.onload = function() {
+                    console.log('이미지 로드 성공:', file.name, '크기:', this.naturalWidth + 'x' + this.naturalHeight);
+                };
+                
+                img.onerror = function() {
+                    console.error('이미지 로드 실패:', file.name);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'd-flex align-items-center justify-content-center';
+                    errorDiv.style.cssText = 'height: 200px; background-color: #f8f9fa; color: #dc3545;';
+                    errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>이미지 로드 실패';
+                    this.parentNode.replaceChild(errorDiv, this);
+                };
+                
+                img.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    window.open(imageUrl, '_blank');
+                });
+                
+                card.appendChild(img);
+                
+                // 카드 바디
+                const cardBody = document.createElement('div');
+                cardBody.className = 'card-body p-2';
+                
+                const fileNameP = document.createElement('p');
+                fileNameP.className = 'card-text small mb-1 text-truncate';
+                fileNameP.title = file.name;
+                fileNameP.textContent = file.name;
+                cardBody.appendChild(fileNameP);
+                
+                const fileSize = document.createElement('small');
+                fileSize.className = 'text-muted';
+                fileSize.textContent = formatFileSize(file.size);
+                cardBody.appendChild(fileSize);
+                
+                card.appendChild(cardBody);
+                
+                // 제거 버튼
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-danger remove-btn';
+                removeBtn.setAttribute('data-file-name', file.name);
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    removeImage(file.name);
+                });
+                card.appendChild(removeBtn);
+                
+                cardDiv.appendChild(card);
+                imagePreviewGrid.appendChild(cardDiv);
+                
+                console.log('미리보기 추가 완료, 현재 카드 수:', imagePreviewGrid.children.length);
+                
+                if (imagePreviewGrid.children.length === 1) {
+                    fileDropZoneContent.style.display = 'none';
+                    imagePreviewGrid.style.display = 'grid';
+                    console.log('안내 메시지 숨김, 그리드 표시');
+                }
+            }
+            
+            function removeImage(fileName) {
+                selectedFiles = selectedFiles.filter(f => f.name !== fileName);
+                const card = imagePreviewGrid.querySelector(`[data-file-name="${fileName}"]`);
+                if (card) {
+                    card.remove();
+                }
+                
+                if (selectedFiles.length === 0) {
+                    fileDropZoneContent.style.display = 'flex';
+                    imagePreviewGrid.style.display = 'none';
+                }
+                
+                updateFileInput();
+            }
+            
+            function updateFileInput() {
+                try {
+                    const dataTransfer = new DataTransfer();
+                    selectedFiles.forEach(file => {
+                        dataTransfer.items.add(file);
+                    });
+                    fileInput.files = dataTransfer.files;
+                } catch (e) {
+                    console.warn('DataTransfer를 사용할 수 없습니다:', e);
+                }
+            }
+            
+            function processFiles(files) {
+                if (selectedFiles.length + files.length > maxFiles) {
+                    alert('최대 ' + maxFiles + '개의 파일만 업로드할 수 있습니다.');
+                    return;
+                }
+                
+                Array.from(files).forEach(function(file) {
+                    const fileName = file.name.toLowerCase();
+                    const fileExtension = fileName.split('.').pop();
+                    
+                    if (!allowedExtensions.includes(fileExtension) || !allowedMimeTypes.includes(file.type)) {
+                        alert('"' + file.name + '"은(는) 이미지 파일만 업로드 가능합니다.');
+                        return;
+                    }
+                    
+                    if (file.size > maxSize) {
+                        alert('"' + file.name + '"의 파일 크기는 10MB 이하여야 합니다.');
+                        return;
+                    }
+                    
+                    selectedFiles.push(file);
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        console.log('FileReader 로드 성공:', file.name);
+                        console.log('결과 타입:', typeof e.target.result);
+                        console.log('결과 길이:', e.target.result ? e.target.result.length : 0);
+                        if (e.target.result && e.target.result.length > 0) {
+                            addImagePreview(file, e.target.result);
+                        } else {
+                            console.error('FileReader 결과가 비어있습니다.');
+                            alert('"' + file.name + '" 파일을 읽을 수 없습니다.');
+                            selectedFiles = selectedFiles.filter(f => f.name !== file.name);
+                        }
+                    };
+                    reader.onerror = function(error) {
+                        console.error('FileReader 오류:', error);
+                        alert('"' + file.name + '" 파일을 읽는 중 오류가 발생했습니다.');
+                        selectedFiles = selectedFiles.filter(f => f.name !== file.name);
+                    };
+                    reader.onabort = function() {
+                        console.error('FileReader 중단:', file.name);
+                        alert('"' + file.name + '" 파일 읽기가 중단되었습니다.');
+                        selectedFiles = selectedFiles.filter(f => f.name !== file.name);
+                    };
+                    console.log('FileReader 시작:', file.name, '크기:', file.size);
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            fileDropZone.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-btn') || e.target.closest('.preview-image-card')) {
+                    return;
+                }
+                fileInput.click();
+            });
+            
+            fileDropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                fileDropZone.classList.add('drag-over');
+            });
+            
+            fileDropZone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                fileDropZone.classList.remove('drag-over');
+            });
+            
+            fileDropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                fileDropZone.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    processFiles(files);
+                }
+            });
+            
+            fileInput.addEventListener('change', function(e) {
+                const files = e.target.files;
+                if (files.length > 0) {
+                    processFiles(files);
+                }
+                this.value = '';
+            });
+            
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    if (selectedFiles.length > 0) {
+                        updateFileInput();
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

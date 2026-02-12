@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}서비스 - 온누리인쇄나라{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">
+            <i class="fas fa-cogs me-3"></i>서비스
+        </h1>
+        <p class="lead text-muted">다양한 인쇄 서비스를 제공합니다.</p>
+    </div>
+
+    <!-- 인쇄 서비스 -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">인쇄 서비스</h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-body text-center p-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-print fa-2x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">디지털 인쇄</h5>
+                    <p class="card-text">소량 인쇄부터 대량 인쇄까지 빠르고 정확한 디지털 인쇄 서비스</p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="fas fa-check text-success me-2"></i>1부부터 주문 가능</li>
+                        <li><i class="fas fa-check text-success me-2"></i>빠른 제작 시간</li>
+                        <li><i class="fas fa-check text-success me-2"></i>정확한 색상 재현</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-body text-center p-4">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-palette fa-2x text-success"></i>
+                    </div>
+                    <h5 class="card-title">컬러 인쇄</h5>
+                    <p class="card-text">선명하고 아름다운 컬러 인쇄로 브랜드 가치를 높여드립니다</p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="fas fa-check text-success me-2"></i>CMYK 컬러 모드</li>
+                        <li><i class="fas fa-check text-success me-2"></i>고해상도 출력</li>
+                        <li><i class="fas fa-check text-success me-2"></i>색상 보정 서비스</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-body text-center p-4">
+                    <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-file-alt fa-2x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">오프셋 인쇄</h5>
+                    <p class="card-text">대량 주문에 최적화된 고품질 오프셋 인쇄 서비스</p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="fas fa-check text-success me-2"></i>대량 주문 할인</li>
+                        <li><i class="fas fa-check text-success me-2"></i>최고 품질</li>
+                        <li><i class="fas fa-check text-success me-2"></i>다양한 용지 선택</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 제본 서비스 -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">제본 서비스</h2>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-body text-center p-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-link fa-2x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">링제본</h5>
+                    <p class="card-text">코일링과 와이어링을 통한 견고한 제본</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-body text-center p-4">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-book fa-2x text-success"></i>
+                    </div>
+                    <h5 class="card-title">무선제본</h5>
+                    <p class="card-text">깔끔하고 세련된 무선 제본</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-body text-center p-4">
+                    <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-stapler fa-2x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">중철제본</h5>
+                    <p class="card-text">전통적인 중철 방식의 제본</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-body text-center p-4">
+                    <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-fold fa-2x text-info"></i>
+                    </div>
+                    <h5 class="card-title">접지제본</h5>
+                    <p class="card-text">특수한 접지 방식의 제본</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 추가 서비스 -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-center mb-4">추가 서비스</h2>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-paint-brush fa-2x text-primary"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">디자인 서비스</h5>
+                            <p class="text-muted mb-0">전문 디자이너의 창의적인 디자인</p>
+                        </div>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>로고 디자인</li>
+                        <li><i class="fas fa-check text-success me-2"></i>브로셔 디자인</li>
+                        <li><i class="fas fa-check text-success me-2"></i>명함 디자인</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-truck fa-2x text-success"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">배송 서비스</h5>
+                            <p class="text-muted mb-0">안전하고 빠른 배송</p>
+                        </div>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>전국 배송</li>
+                        <li><i class="fas fa-check text-success me-2"></i>배송 추적</li>
+                        <li><i class="fas fa-check text-success me-2"></i>당일 배송 (서울)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

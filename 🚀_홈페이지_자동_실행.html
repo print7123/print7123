@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홈페이지 자동 실행</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .status {
+            font-size: 1.2em;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+        .button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        .button.secondary {
+            background: #2196F3;
+        }
+        .button.secondary:hover {
+            background: #0b7dda;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 홈페이지 자동 실행</h1>
+        <div id="status" class="status">
+            <div class="spinner"></div>
+            <p>서버 상태 확인 중...</p>
+        </div>
+        <div id="actions" class="hidden">
+            <button class="button" onclick="startServer()">서버 시작 및 홈페이지 열기</button>
+            <button class="button secondary" onclick="openIntegratedHTML()">통합 HTML 파일 열기</button>
+        </div>
+    </div>
+
+    <script>
+        // 서버 상태 확인
+        async function checkServer() {
+            try {
+                const response = await fetch('http://localhost:5000', { 
+                    method: 'HEAD',
+                    mode: 'no-cors',
+                    timeout: 2000
+                });
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        // 서버 시작 함수
+        function startServer() {
+            const statusDiv = document.getElementById('status');
+            const actionsDiv = document.getElementById('actions');
+            
+            statusDiv.innerHTML = '<div class="spinner"></div><p>서버 시작 중...</p>';
+            actionsDiv.classList.add('hidden');
+            
+            // 배치 파일 실행 (Windows)
+            if (navigator.platform.toLowerCase().includes('win')) {
+                // ActiveXObject를 사용하여 배치 파일 실행 시도
+                try {
+                    const shell = new ActiveXObject('WScript.Shell');
+                    shell.Run('🚀_홈페이지_자동_실행_통합HTML.bat', 0, false);
+                    
+                    // 서버 시작 대기
+                    setTimeout(() => {
+                        window.location.href = 'http://localhost:5000';
+                    }, 5000);
+                } catch (e) {
+                    // ActiveXObject가 지원되지 않는 경우
+                    statusDiv.innerHTML = `
+                        <p>⚠️ 브라우저에서 직접 서버를 시작할 수 없습니다.</p>
+                        <p>다음 파일을 더블클릭하세요:</p>
+                        <p style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; margin: 10px 0;">
+                            <strong>🚀_홈페이지_자동_실행_통합HTML.bat</strong>
+                        </p>
+                        <button class="button" onclick="openIntegratedHTML()">통합 HTML 파일 열기</button>
+                    `;
+                }
+            } else {
+                statusDiv.innerHTML = '<p>⚠️ Windows에서만 자동 서버 시작이 지원됩니다.</p>';
+            }
+        }
+
+        // 통합 HTML 파일 열기
+        function openIntegratedHTML() {
+            window.location.href = 'index_통합.html';
+        }
+
+        // 페이지 로드 시 서버 상태 확인
+        window.addEventListener('load', async () => {
+            const statusDiv = document.getElementById('status');
+            const actionsDiv = document.getElementById('actions');
+            
+            // 서버 상태 확인 (간단한 방법)
+            setTimeout(async () => {
+                try {
+                    const response = await fetch('http://localhost:5000', { 
+                        method: 'HEAD',
+                        mode: 'no-cors'
+                    });
+                    statusDiv.innerHTML = '<p>✅ 서버가 실행 중입니다!</p>';
+                    actionsDiv.innerHTML = `
+                        <button class="button" onclick="window.location.href='http://localhost:5000'">홈페이지 열기</button>
+                        <button class="button secondary" onclick="openIntegratedHTML()">통합 HTML 파일 열기</button>
+                    `;
+                    actionsDiv.classList.remove('hidden');
+                } catch (error) {
+                    statusDiv.innerHTML = '<p>⚠️ 서버가 실행 중이 아닙니다.</p><p>서버를 시작하려면 아래 버튼을 클릭하세요.</p>';
+                    actionsDiv.classList.remove('hidden');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+
+
+

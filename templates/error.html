@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}오류 - {{ error_code }} - 온누리인쇄나라{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center">
+                <!-- 오류 아이콘 -->
+                <div class="mb-4">
+                    {% if error_code == 404 %}
+                        <i class="fas fa-exclamation-triangle fa-5x text-warning"></i>
+                    {% elif error_code == 500 %}
+                        <i class="fas fa-server fa-5x text-danger"></i>
+                    {% else %}
+                        <i class="fas fa-exclamation-circle fa-5x text-info"></i>
+                    {% endif %}
+                </div>
+                
+                <!-- 오류 코드 -->
+                <h1 class="display-1 fw-bold mb-3">
+                    {% if error_code %}
+                        {{ error_code }}
+                    {% else %}
+                        오류
+                    {% endif %}
+                </h1>
+                
+                <!-- 오류 메시지 -->
+                <h2 class="h4 mb-4 text-muted">
+                    {% if error_message %}
+                        {{ error_message }}
+                    {% elif error_code == 404 %}
+                        페이지를 찾을 수 없습니다
+                    {% elif error_code == 500 %}
+                        서버 내부 오류가 발생했습니다
+                    {% else %}
+                        오류가 발생했습니다
+                    {% endif %}
+                </h2>
+                
+                <!-- 설명 -->
+                <p class="lead mb-4">
+                    {% if error_code == 404 %}
+                        요청하신 페이지가 존재하지 않거나 이동되었을 수 있습니다.<br>
+                        URL을 확인하시거나 아래 버튼을 클릭하여 홈으로 돌아가세요.
+                    {% elif error_code == 500 %}
+                        서버에서 예기치 않은 오류가 발생했습니다.<br>
+                        잠시 후 다시 시도해주시거나, 문제가 계속되면 관리자에게 문의해주세요.
+                    {% else %}
+                        예기치 않은 오류가 발생했습니다.<br>
+                        잠시 후 다시 시도해주세요.
+                    {% endif %}
+                </p>
+                
+                <!-- 버튼 -->
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-home me-2"></i>홈으로 가기
+                    </a>
+                    <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i>이전 페이지
+                    </button>
+                    {% if error_code == 404 %}
+                    <a href="{{ url_for('quote') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-calculator me-2"></i>견적 계산
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <!-- 도움말 -->
+                <div class="mt-5 pt-4 border-top">
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        도움이 필요하신가요?
+                    </p>
+                    <a href="{{ url_for('contact') }}" class="btn btn-link text-decoration-none">
+                        <i class="fas fa-phone me-1"></i>연락처 보기
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .display-1 {
+        font-size: 8rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+    
+    @media (max-width: 768px) {
+        .display-1 {
+            font-size: 5rem;
+        }
+        
+        .fa-5x {
+            font-size: 4rem !important;
+        }
+    }
+</style>
+{% endblock %}
+
+
+

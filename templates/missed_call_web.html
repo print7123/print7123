@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부재중전화 자동 알림 시스템 - 온누리인쇄나라</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin: 20px auto;
+            padding: 30px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        
+        .status-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .control-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .missed-call-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .real-time-updates {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-active {
+            background-color: #27ae60;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-inactive {
+            background-color: #e74c3c;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <!-- 헤더 -->
+            <div class="header">
+                <h1><i class="fas fa-phone-alt me-3"></i>부재중전화 자동 알림 시스템</h1>
+                <p>온누리인쇄나라 - 02-6338-7123으로 오는 010 번호 부재중전화 자동 감지 및 콜백문자 전송</p>
+            </div>
+
+            <!-- 상태 카드 -->
+            <div class="status-card">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-signal fa-3x mb-2"></i>
+                        <h5>모니터링 상태</h5>
+                        <span id="monitoring-status" class="status-indicator status-inactive"></span>
+                        <span id="monitoring-text">중지됨</span>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-phone fa-3x mb-2"></i>
+                        <h5>총 부재중전화</h5>
+                        <span id="total-calls" class="h4">0</span>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-calendar-day fa-3x mb-2"></i>
+                        <h5>오늘 부재중전화</h5>
+                        <span id="today-calls" class="h4">0</span>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-clock fa-3x mb-2"></i>
+                        <h5>마지막 확인</h5>
+                        <span id="last-check" class="h6">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 제어 카드 -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="control-card">
+                        <h4><i class="fas fa-cogs me-2"></i>시스템 제어</h4>
+                        <div class="d-grid gap-2">
+                            <button id="start-monitoring" class="btn btn-success">
+                                <i class="fas fa-play me-2"></i>모니터링 시작
+                            </button>
+                            <button id="stop-monitoring" class="btn btn-danger" disabled>
+                                <i class="fas fa-stop me-2"></i>모니터링 중지
+                            </button>
+                            <button id="test-call" class="btn btn-primary">
+                                <i class="fas fa-test-tube me-2"></i>테스트 부재중전화
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="control-card">
+                        <h4><i class="fas fa-chart-line me-2"></i>실시간 업데이트</h4>
+                        <div id="real-time-updates" class="real-time-updates">
+                            <div class="text-muted text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                모니터링을 시작하면 실시간 업데이트가 표시됩니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 부재중전화 목록 -->
+            <div class="control-card">
+                <h4><i class="fas fa-list me-2"></i>부재중전화 목록</h4>
+                <div id="missed-calls-list">
+                    <div class="text-muted text-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        부재중전화가 없습니다.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 알림 영역 -->
+            <div id="alerts"></div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    
+    <script>
+        // Socket.IO 연결
+        const socket = io();
+        
+        // 전역 변수
+        let isMonitoring = false;
+        
+        // DOM 요소들
+        const startBtn = document.getElementById('start-monitoring');
+        const stopBtn = document.getElementById('stop-monitoring');
+        const testBtn = document.getElementById('test-call');
+        const monitoringStatus = document.getElementById('monitoring-status');
+        const monitoringText = document.getElementById('monitoring-text');
+        const totalCalls = document.getElementById('total-calls');
+        const todayCalls = document.getElementById('today-calls');
+        const lastCheck = document.getElementById('last-check');
+        const realTimeUpdates = document.getElementById('real-time-updates');
+        const missedCallsList = document.getElementById('missed-calls-list');
+        const alerts = document.getElementById('alerts');
+        
+        // 초기 상태 로드
+        loadStatus();
+        loadMissedCalls();
+        
+        // Socket.IO 이벤트 리스너
+        socket.on('connect', function() {
+            addRealTimeUpdate('시스템에 연결되었습니다.', 'info');
+        });
+        
+        socket.on('disconnect', function() {
+            addRealTimeUpdate('시스템 연결이 끊어졌습니다.', 'warning');
+        });
+        
+        socket.on('missed_call_detected', function(data) {
+            addRealTimeUpdate(`부재중전화 감지: ${data.caller_number}`, 'success');
+        });
+        
+        socket.on('missed_call_processed', function(data) {
+            addRealTimeUpdate(`부재중전화 처리 완료: ${data.caller_number}`, 'info');
+            loadMissedCalls();
+        });
+        
+        // 버튼 이벤트 리스너
+        startBtn.addEventListener('click', startMonitoring);
+        stopBtn.addEventListener('click', stopMonitoring);
+        testBtn.addEventListener('click', testMissedCall);
+        
+        // 모니터링 시작
+        function startMonitoring() {
+            fetch('/api/start_monitoring', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    isMonitoring = true;
+                    updateMonitoringStatus(true);
+                    showAlert('모니터링이 시작되었습니다.', 'success');
+                    addRealTimeUpdate('모니터링이 시작되었습니다.', 'success');
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('모니터링 시작 중 오류가 발생했습니다.', 'danger');
+                console.error('Error:', error);
+            });
+        }
+        
+        // 모니터링 중지
+        function stopMonitoring() {
+            fetch('/api/stop_monitoring', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    isMonitoring = false;
+                    updateMonitoringStatus(false);
+                    showAlert('모니터링이 중지되었습니다.', 'warning');
+                    addRealTimeUpdate('모니터링이 중지되었습니다.', 'warning');
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('모니터링 중지 중 오류가 발생했습니다.', 'danger');
+                console.error('Error:', error);
+            });
+        }
+        
+        // 테스트 부재중전화
+        function testMissedCall() {
+            fetch('/api/test_missed_call', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('테스트 부재중전화가 처리되었습니다.', 'success');
+                    addRealTimeUpdate(`테스트 부재중전화: ${data.test_call.caller_number}`, 'info');
+                    loadMissedCalls();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('테스트 중 오류가 발생했습니다.', 'danger');
+                console.error('Error:', error);
+            });
+        }
+        
+        // 상태 로드
+        function loadStatus() {
+            fetch('/api/status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateStatus(data.status);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading status:', error);
+            });
+        }
+        
+        // 부재중전화 목록 로드
+        function loadMissedCalls() {
+            fetch('/api/missed_calls')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateMissedCallsList(data.missed_calls);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading missed calls:', error);
+            });
+        }
+        
+        // 상태 업데이트
+        function updateStatus(status) {
+            isMonitoring = status.is_monitoring;
+            updateMonitoringStatus(isMonitoring);
+            totalCalls.textContent = status.total_missed_calls;
+            lastCheck.textContent = status.last_check;
+            
+            // 오늘 부재중전화 수 계산
+            const today = new Date().toISOString().split('T')[0];
+            const todayCallsCount = status.total_missed_calls; // 실제로는 서버에서 계산해야 함
+            todayCalls.textContent = todayCallsCount;
+        }
+        
+        // 모니터링 상태 업데이트
+        function updateMonitoringStatus(active) {
+            if (active) {
+                monitoringStatus.className = 'status-indicator status-active';
+                monitoringText.textContent = '실행 중';
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            } else {
+                monitoringStatus.className = 'status-indicator status-inactive';
+                monitoringText.textContent = '중지됨';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        }
+        
+        // 부재중전화 목록 업데이트
+        function updateMissedCallsList(missedCalls) {
+            if (missedCalls.length === 0) {
+                missedCallsList.innerHTML = `
+                    <div class="text-muted text-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        부재중전화가 없습니다.
+                    </div>
+                `;
+                return;
+            }
+            
+            const callsHtml = missedCalls.map(call => `
+                <div class="missed-call-item">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong><i class="fas fa-phone me-2"></i>${call.caller_number}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <i class="fas fa-clock me-2"></i>${call.call_time}
+                        </div>
+                        <div class="col-md-3">
+                            <i class="fas fa-info-circle me-2"></i>${call.type}
+                        </div>
+                        <div class="col-md-3">
+                            <span class="badge bg-primary">처리됨</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            missedCallsList.innerHTML = callsHtml;
+        }
+        
+        // 실시간 업데이트 추가
+        function addRealTimeUpdate(message, type) {
+            const timestamp = new Date().toLocaleTimeString();
+            const updateHtml = `
+                <div class="alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : type === 'danger' ? 'danger' : 'info'} alert-dismissible fade show" role="alert">
+                    <small class="text-muted">${timestamp}</small><br>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            realTimeUpdates.insertAdjacentHTML('afterbegin', updateHtml);
+            
+            // 최대 10개까지만 유지
+            const updates = realTimeUpdates.querySelectorAll('.alert');
+            if (updates.length > 10) {
+                updates[updates.length - 1].remove();
+            }
+        }
+        
+        // 알림 표시
+        function showAlert(message, type) {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            alerts.insertAdjacentHTML('beforeend', alertHtml);
+            
+            // 5초 후 자동 제거
+            setTimeout(() => {
+                const alert = alerts.querySelector('.alert');
+                if (alert) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+        
+        // 주기적으로 상태 업데이트
+        setInterval(loadStatus, 5000);
+    </script>
+</body>
+</html> 

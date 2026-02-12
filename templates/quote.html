@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}견적계산 - 온누리인쇄나라{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="fas fa-calculator me-3"></i>자동 견적 계산기
+                </h1>
+                <p class="lead text-muted">원하시는 인쇄 옵션을 선택하시면 실시간으로 견적을 확인할 수 있습니다.</p>
+            </div>
+
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <form id="quoteForm">
+                        <!-- 기본 정보 -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="customerName" class="form-label fw-bold">
+                                    <i class="fas fa-user me-2"></i>고객명
+                                </label>
+                                <input type="text" class="form-control" id="customerName" name="customerName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label fw-bold">
+                                    <i class="fas fa-phone me-2"></i>연락처
+                                </label>
+                                <input type="tel" class="form-control" id="phone" name="phone" required>
+                            </div>
+                        </div>
+
+                        <!-- 인쇄 설정 -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="printType" class="form-label fw-bold">
+                                    <i class="fas fa-print me-2"></i>출력 타입
+                                </label>
+                                <select class="form-select" id="printType" name="printType" required>
+                                    <option value="">선택해주세요</option>
+                                    <option value="흑백">흑백</option>
+                                    <option value="잉크칼라">잉크칼라</option>
+                                    <option value="레이져칼라">레이져칼라</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="bindingType" class="form-label fw-bold">
+                                    <i class="fas fa-book me-2"></i>제본 방식
+                                </label>
+                                <select class="form-select" id="bindingType" name="bindingType" required>
+                                    <option value="">선택해주세요</option>
+                                    <option value="링">링(코일, 와이어)</option>
+                                    <option value="무선">무선제본</option>
+                                    <option value="중철">중철제본</option>
+                                    <option value="접지">접지제본</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 수량 및 페이지 -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label for="quantity" class="form-label fw-bold">
+                                    <i class="fas fa-copy me-2"></i>제본 부수
+                                </label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" min="1" value="1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="pages" class="form-label fw-bold">
+                                    <i class="fas fa-file-alt me-2"></i>페이지 수
+                                </label>
+                                <input type="number" class="form-control" id="pages" name="pages" min="1" value="1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="size" class="form-label fw-bold">
+                                    <i class="fas fa-ruler me-2"></i>용지 크기
+                                </label>
+                                <select class="form-select" id="size" name="size" required>
+                                    <option value="">선택해주세요</option>
+                                    <option value="A4">A4 (210×297mm)</option>
+                                    <option value="A5">A5 (148×210mm)</option>
+                                    <option value="A6">A6 (105×148mm)</option>
+                                    <option value="B4">B4 (257×364mm)</option>
+                                    <option value="B5">B5 (182×257mm)</option>
+                                    <option value="기타">기타 (직접입력)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 특별 요구사항 -->
+                        <div class="mb-4">
+                            <label for="specialRequirements" class="form-label fw-bold">
+                                <i class="fas fa-comment me-2"></i>특별 요구사항
+                            </label>
+                            <textarea class="form-control" id="specialRequirements" name="specialRequirements" rows="3" placeholder="추가 요구사항이 있으시면 입력해주세요."></textarea>
+                        </div>
+
+                        <!-- 견적 결과 -->
+                        <div class="bg-light p-4 rounded mb-4" id="quoteResult" style="display: none;">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-calculator me-2"></i>견적 결과
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>단가(부가세 포함):</strong> <span id="unitPrice" class="text-primary"></span></p>
+                                    <p class="mb-2"><strong>총 가격(부가세 포함):</strong> <span id="totalPrice" class="text-success fw-bold fs-5"></span></p>
+                                    <p class="mb-2"><strong>세액:</strong> <span id="taxAmount" class="text-warning"></span></p>
+                                    <p class="mb-2"><strong>합계금액:</strong> <span id="totalPriceWithTax" class="text-primary fw-bold fs-4"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>할인율:</strong> <span id="discount" class="text-warning"></span></p>
+                                    <p class="mb-2"><strong>예상 제작일:</strong> <span id="productionTime" class="text-info"></span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 버튼 -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-outline-secondary btn-lg" onclick="resetForm()">
+                                <i class="fas fa-redo me-2"></i>초기화
+                            </button>
+                            <button type="button" class="btn btn-primary btn-lg" onclick="calculateQuote()">
+                                <i class="fas fa-calculator me-2"></i>견적 계산
+                            </button>
+                            <button type="button" class="btn btn-info btn-lg" onclick="downloadQuotePDF()" id="pdfBtn" style="display: none;">
+                                <i class="fas fa-file-pdf me-2"></i>PDF 저장
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 견적 안내 -->
+            <div class="card mt-4 border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title text-primary">
+                        <i class="fas fa-info-circle me-2"></i>견적 안내
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-check text-success me-2"></i>100부 이상 주문 시 10% 할인 적용</li>
+                        <li><i class="fas fa-check text-success me-2"></i>견적은 참고용이며, 최종 가격은 상담 후 확정됩니다</li>
+                        <li><i class="fas fa-check text-success me-2"></i>특수 용지나 후가공은 별도 견적이 필요합니다</li>
+                        <li><i class="fas fa-check text-success me-2"></i>긴급 주문은 전화 문의 부탁드립니다</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function calculateQuote() {
+    console.log('견적계산 함수 시작');
+    
+    const formData = {
+        customerName: document.getElementById('customerName').value,
+        phone: document.getElementById('phone').value,
+        printType: document.getElementById('printType').value,
+        bindingType: document.getElementById('bindingType').value,
+        quantity: document.getElementById('quantity').value,
+        pages: document.getElementById('pages').value,
+        size: document.getElementById('size').value
+    };
+
+    console.log('폼 데이터:', formData);
+
+    // 필수 필드 검증
+    if (!formData.customerName || !formData.phone || !formData.printType || 
+        !formData.bindingType || !formData.quantity || !formData.pages || !formData.size) {
+        alert('모든 필수 항목을 입력해주세요.');
+        return;
+    }
+
+    console.log('견적 계산 요청 시작');
+
+    // AJAX로 견적 계산 요청
+    fetch('/quote', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        console.log('응답 상태:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('견적 응답 데이터:', data);
+        
+        if (data.error) {
+            alert('견적 계산 오류: ' + data.error);
+            return;
+        }
+        
+        // 견적 결과 표시
+        document.getElementById('unitPrice').textContent = `₩${data.unit_price.toLocaleString()}`;
+        document.getElementById('totalPrice').textContent = `₩${data.total_price.toLocaleString()}`;
+        document.getElementById('taxAmount').textContent = `₩${Math.round(data.total_price * 0.1).toLocaleString()}`;
+        document.getElementById('totalPriceWithTax').textContent = `₩${Math.round(data.total_price * 1.1).toLocaleString()}`;
+        document.getElementById('discount').textContent = '할인 없음';
+        
+        // 예상 제작일 계산
+        const productionDays = Math.ceil(formData.quantity / 100) + 1;
+        document.getElementById('productionTime').textContent = `${productionDays}일`;
+        
+        // 견적 결과 표시
+        document.getElementById('quoteResult').style.display = 'block';
+        document.getElementById('submitBtn').style.display = 'inline-block';
+        document.getElementById('pdfBtn').style.display = 'inline-block';
+        
+        console.log('견적 결과 표시 완료');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('견적 계산 중 오류가 발생했습니다: ' + error.message);
+    });
+}
+
+function resetForm() {
+    document.getElementById('quoteForm').reset();
+    document.getElementById('quoteResult').style.display = 'none';
+    document.getElementById('submitBtn').style.display = 'none';
+    document.getElementById('pdfBtn').style.display = 'none';
+}
+
+function downloadQuotePDF() {
+    // 현재 폼 데이터 수집
+    const formData = {
+        customerName: document.getElementById('customerName').value,
+        phone: document.getElementById('phone').value,
+        printType: document.getElementById('printType').value,
+        bindingType: document.getElementById('bindingType').value,
+        quantity: document.getElementById('quantity').value,
+        pages: document.getElementById('pages').value,
+        size: document.getElementById('size').value,
+        printMethod: document.getElementById('printMethod') ? document.getElementById('printMethod').value : 'double'
+    };
+
+    // 필수 필드 검증
+    if (!formData.customerName || !formData.phone || !formData.printType || 
+        !formData.bindingType || !formData.quantity || !formData.pages || !formData.size) {
+        alert('모든 필수 항목을 입력해주세요.');
+        return;
+    }
+
+    // PDF 다운로드 요청
+    fetch('/download_quote_pdf', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('PDF 생성 중 오류가 발생했습니다.');
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        // 파일 다운로드
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `견적서_${formData.customerName}_${new Date().toISOString().slice(0,10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        alert('견적서 PDF가 다운로드되었습니다.');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('PDF 다운로드 중 오류가 발생했습니다.');
+    });
+}
+
+// 실시간 견적 계산 (옵션 변경 시)
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = ['printType', 'bindingType', 'quantity', 'pages', 'size'];
+    inputs.forEach(id => {
+        document.getElementById(id).addEventListener('change', function() {
+            if (document.getElementById('quoteResult').style.display !== 'none') {
+                calculateQuote();
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}내 주문 - 온누리인쇄나라{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <div>
+                    <h1 class="display-5 fw-bold text-primary">
+                        <i class="fas fa-shopping-cart me-3"></i>내 주문
+                    </h1>
+                    <p class="lead text-muted">{{ current_user.username }}님의 주문 내역입니다.</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('quote') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>새 주문
+                    </a>
+                </div>
+            </div>
+
+            {% if orders %}
+                <div class="row">
+                    {% for order in orders %}
+                    <div class="col-12 mb-4">
+                        <div class="card shadow-lg border-0">
+                            <div class="card-header bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">
+                                            <i class="fas fa-hashtag me-2 text-primary"></i>{{ order.order_number }}
+                                        </h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </small>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <!-- 주문 상태 배지 -->
+                                        {% if order.status == '견적요청' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock me-1"></i>견적요청
+                                            </span>
+                                        {% elif order.status == '승인' %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-check me-1"></i>승인
+                                            </span>
+                                        {% elif order.status == '제작중' %}
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-cog fa-spin me-1"></i>제작중
+                                            </span>
+                                        {% elif order.status == '완료' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>완료
+                                            </span>
+                                        {% elif order.status == '배송중' %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-truck me-1"></i>배송중
+                                            </span>
+                                        {% endif %}
+                                        
+                                        <a href="{{ url_for('order_detail', order_id=order.id) }}" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i>상세보기
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold mb-3">
+                                            <i class="fas fa-print me-2 text-primary"></i>인쇄 정보
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <p class="mb-1"><strong>출력:</strong> {{ order.print_type }}</p>
+                                                <p class="mb-1"><strong>제본:</strong> {{ order.binding_type }}</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <p class="mb-1"><strong>수량:</strong> {{ order.quantity }}부</p>
+                                                <p class="mb-1"><strong>페이지:</strong> {{ order.pages }}p</p>
+                                            </div>
+                                        </div>
+                                        <p class="mb-0"><strong>용지:</strong> {{ order.size }}</p>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold mb-3">
+                                            <i class="fas fa-money-bill me-2 text-success"></i>견적 정보
+                                        </h6>
+                                        <p class="mb-1"><strong>단가:</strong> ₩{{ "{:,}".format(order.unit_price) }}</p>
+                                        <p class="mb-1"><strong>총 견적:</strong> <span class="text-success fw-bold">₩{{ "{:,}".format(order.total_price) }}</span></p>
+                                        
+                                        {% if order.file_path %}
+                                        <p class="mb-0">
+                                            <i class="fas fa-file me-1 text-info"></i>
+                                            <strong>파일:</strong> 업로드됨
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                {% if order.special_requirements %}
+                                <div class="mt-3 p-3 bg-light rounded">
+                                    <h6 class="fw-bold mb-2">
+                                        <i class="fas fa-comment me-2"></i>특별 요구사항
+                                    </h6>
+                                    <p class="mb-0">{{ order.special_requirements }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="card-footer bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-user me-1"></i>{{ order.customer_name }} | 
+                                            <i class="fas fa-phone me-1"></i>{{ order.phone }}
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>마지막 업데이트: {{ order.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">주문 내역이 없습니다.</h5>
+                    <p class="text-muted">첫 번째 주문을 시작해보세요!</p>
+                    <a href="{{ url_for('quote') }}" class="btn btn-primary">
+                        <i class="fas fa-calculator me-2"></i>견적 계산하기
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- 주문 상태 안내 -->
+            <div class="card mt-5 border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title text-primary mb-3">
+                        <i class="fas fa-info-circle me-2"></i>주문 상태 안내
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-clock text-white"></i>
+                                </div>
+                                <h6 class="fw-bold">견적요청</h6>
+                                <p class="text-muted small">견적 검토 중</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-check text-white"></i>
+                                </div>
+                                <h6 class="fw-bold">승인</h6>
+                                <p class="text-muted small">주문 승인됨</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-cog text-white"></i>
+                                </div>
+                                <h6 class="fw-bold">제작중</h6>
+                                <p class="text-muted small">인쇄 및 제본 진행</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-check-circle text-white"></i>
+                                </div>
+                                <h6 class="fw-bold">완료</h6>
+                                <p class="text-muted small">제작 완료</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

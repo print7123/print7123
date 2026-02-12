@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}메일 템플릿 관리 - 온누리인쇄나라{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt"></i> 메일 템플릿 관리
+                    </h5>
+                    <a href="{{ url_for('mail_template_add') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> 새 템플릿 추가
+                    </a>
+                </div>
+                
+                <div class="card-body">
+                    {% if templates %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>템플릿명</th>
+                                        <th>제목</th>
+                                        <th>카테고리</th>
+                                        <th>상태</th>
+                                        <th>생성일</th>
+                                        <th>작업</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for template in templates %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ template.name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ template.subject }}">
+                                                {{ template.subject }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ template.category|title if template.category else '일반' }}</span>
+                                        </td>
+                                        <td>
+                                            {% if template.is_active %}
+                                                <span class="badge bg-success">활성</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">비활성</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small>{{ template.created_at.strftime('%Y-%m-%d') }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-primary" 
+                                                        onclick="previewTemplate({{ template.id }})" title="미리보기">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <a href="{{ url_for('mail_template_edit', template_id=template.id) }}" 
+                                                   class="btn btn-outline-warning" title="편집">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger" 
+                                                        onclick="deleteTemplate({{ template.id }})" title="삭제">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">템플릿이 없습니다</h5>
+                            <p class="text-muted">새로운 메일 템플릿을 추가해보세요.</p>
+                            <a href="{{ url_for('mail_template_add') }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> 첫 번째 템플릿 추가
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 템플릿 미리보기 모달 -->
+<div class="modal fade" id="templatePreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">템플릿 미리보기</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <strong>템플릿명:</strong> <span id="preview-name"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>제목:</strong> <span id="preview-subject"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>카테고리:</strong> <span id="preview-category"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>내용:</strong>
+                    <div id="preview-content" class="border p-3 bg-light" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                <button type="button" class="btn btn-primary" onclick="useTemplate()">사용하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentTemplateId = null;
+
+function previewTemplate(templateId) {
+    currentTemplateId = templateId;
+    
+    // AJAX로 템플릿 정보 가져오기
+    fetch(`/mail/template/${templateId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('preview-name').textContent = data.name;
+            document.getElementById('preview-subject').textContent = data.subject;
+            document.getElementById('preview-category').textContent = data.category || '일반';
+            document.getElementById('preview-content').textContent = data.content;
+            
+            new bootstrap.Modal(document.getElementById('templatePreviewModal')).show();
+        })
+        .catch(error => {
+            console.error('템플릿 로드 오류:', error);
+            alert('템플릿을 불러오는데 실패했습니다.');
+        });
+}
+
+function useTemplate() {
+    if (currentTemplateId) {
+        // 메일 작성 페이지로 이동하면서 템플릿 ID 전달
+        window.location.href = `/mail/compose?template_id=${currentTemplateId}`;
+    }
+}
+
+function deleteTemplate(templateId) {
+    if (confirm('이 템플릿을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+        fetch(`/mail/template/${templateId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('템플릿 삭제에 실패했습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('템플릿 삭제 오류:', error);
+            alert('템플릿 삭제에 실패했습니다.');
+        });
+    }
+}
+</script>
+
+<style>
+.table th {
+    background-color: #f8f9fa;
+    border-top: none;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+</style>
+{% endblock %} 
